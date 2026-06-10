@@ -198,7 +198,7 @@
   const sf=document.getElementById('starfield');
   for(let i=0;i<180;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+0.5,mn=Math.random()*0.3+0.1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${Math.random()*4+2}s;--min:${mn};animation-delay:${Math.random()*4}s;`;sf.appendChild(s);}
 
-  function getBalance(){return parseFloat(localStorage.getItem('bunzy_balance')||10000);}
+  function getBalance(){const raw=localStorage.getItem('bunzy_balance');if(!raw)return 10000;return Math.floor(parseFloat(String(raw).replace(/,/g,''))||10000);}
   function setBalance(v){localStorage.setItem('bunzy_balance',v);document.getElementById('nav-balance').textContent='$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
   function getActivePerk(){try{return JSON.parse(localStorage.getItem('bunzy_perk'))||null;}catch{return null;}}
   function setActivePerk(p){localStorage.setItem('bunzy_perk',JSON.stringify(p));}
