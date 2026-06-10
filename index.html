@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BunzyBets Gaming — Play Among the Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #03020a;
+    --deep: #080618;
+    --nebula-purple: #1a0a3a;
+    --cosmic-blue: #0d1b4a;
+    --accent-gold: #f5c842;
+    --accent-cyan: #00e5ff;
+    --accent-magenta: #e040fb;
+    --star-white: #e8f0ff;
+    --dim: #6a7a9a;
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.08);
+    --glow-gold: 0 0 20px rgba(245,200,66,0.4);
+    --glow-cyan: 0 0 20px rgba(0,229,255,0.4);
+    --glow-magenta: 0 0 20px rgba(224,64,251,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--void);
+    color: var(--star-white);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STAR FIELD */
+  #starfield {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 20% 50%, #0d0830 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, #080d30 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 80%, #1a0520 0%, transparent 50%),
+                var(--void);
+  }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: white; animation: twinkle var(--d) ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: var(--min); transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+  .nebula {
+    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+  @keyframes drift { from { transform: translate(0,0); } to { transform: translate(30px, 20px); } }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(3,2,10,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,229,255,0.1);
+  }
+  .nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900; font-size: 1.2rem;
+    color: var(--accent-gold);
+    text-shadow: var(--glow-gold);
+    text-decoration: none;
+    letter-spacing: 2px;
+  }
+  .nav-logo span { color: var(--accent-cyan); }
+  .nav-balance {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem; color: var(--accent-gold);
+    background: rgba(245,200,66,0.08);
+    border: 1px solid rgba(245,200,66,0.2);
+    padding: 8px 16px; border-radius: 8px;
+  }
+  .nav-balance .label { color: var(--dim); font-size: 0.75rem; }
+  .balance-amount { font-size: 1rem; font-weight: 600; }
+
+  /* HERO */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 120px 40px 60px;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 4px;
+    color: var(--accent-cyan); text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900; line-height: 1.1;
+    margin-bottom: 24px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+  .hero-title .gold { color: var(--accent-gold); text-shadow: var(--glow-gold); }
+  .hero-title .cyan { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+  .hero-sub {
+    font-size: 1.1rem; color: var(--dim); max-width: 520px;
+    line-height: 1.7; margin-bottom: 48px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+  .hero-cta {
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+  .btn-primary {
+    font-family: 'Orbitron', sans-serif; font-size: 0.85rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 14px 32px; border-radius: 8px; cursor: pointer;
+    border: none; text-decoration: none;
+    background: linear-gradient(135deg, var(--accent-gold), #e6a800);
+    color: #000; transition: all 0.2s;
+    box-shadow: var(--glow-gold);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(245,200,66,0.6); }
+  .btn-secondary {
+    font-family: 'Orbitron', sans-serif; font-size: 0.85rem;
+    font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    padding: 14px 32px; border-radius: 8px; cursor: pointer;
+    text-decoration: none;
+    background: transparent;
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0,229,255,0.4);
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(0,229,255,0.08); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
+
+  /* STATS BAR */
+  .stats-bar {
+    position: relative; z-index: 1;
+    display: flex; justify-content: center; gap: 60px;
+    padding: 40px; flex-wrap: wrap;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.02);
+  }
+  .stat { text-align: center; }
+  .stat-value {
+    font-family: 'Orbitron', sans-serif; font-size: 1.8rem;
+    font-weight: 700; color: var(--accent-gold);
+  }
+  .stat-label { font-size: 0.75rem; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  /* GAMES GRID */
+  .games-section {
+    position: relative; z-index: 1;
+    padding: 80px 40px; max-width: 1200px; margin: 0 auto;
+  }
+  .section-header { text-align: center; margin-bottom: 60px; }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 4px; color: var(--accent-magenta);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .game-card {
+    position: relative; overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px; cursor: pointer;
+    text-decoration: none; color: inherit;
+    transition: all 0.3s; padding: 0;
+    display: block;
+  }
+  .game-card:hover { transform: translateY(-6px); border-color: var(--card-accent, var(--accent-cyan)); }
+  .game-card:hover .card-glow { opacity: 1; }
+  .game-card:hover .play-btn { opacity: 1; transform: translateY(0); }
+
+  .card-glow {
+    position: absolute; inset: 0; opacity: 0;
+    background: radial-gradient(circle at 50% 0%, var(--card-accent, rgba(0,229,255,0.15)), transparent 70%);
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  .card-visual {
+    height: 180px; display: flex; align-items: center; justify-content: center;
+    font-size: 4rem; position: relative;
+    background: var(--card-vis-bg, rgba(0,229,255,0.05));
+    border-bottom: 1px solid var(--card-border);
+    overflow: hidden;
+  }
+  .card-visual-bg {
+    position: absolute; inset: 0; opacity: 0.15;
+    background: radial-gradient(circle at 50% 100%, var(--card-accent, #00e5ff), transparent 70%);
+  }
+  .card-emoji { font-size: 4rem; z-index: 1; filter: drop-shadow(0 0 20px var(--card-accent, #00e5ff)); }
+  .card-body { padding: 24px; }
+  .card-name {
+    font-family: 'Orbitron', sans-serif; font-size: 1rem;
+    font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .card-desc { font-size: 0.85rem; color: var(--dim); line-height: 1.6; margin-bottom: 16px; }
+  .card-meta { display: flex; gap: 12px; }
+  .card-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 1px; padding: 4px 10px; border-radius: 4px;
+    border: 1px solid var(--card-border); color: var(--dim);
+    text-transform: uppercase;
+  }
+  .play-btn {
+    position: absolute; bottom: 20px; right: 20px;
+    font-family: 'Orbitron', sans-serif; font-size: 0.7rem;
+    font-weight: 700; letter-spacing: 2px;
+    padding: 8px 18px; border-radius: 6px;
+    background: var(--card-accent, var(--accent-cyan));
+    color: #000; opacity: 0;
+    transform: translateY(8px); transition: all 0.2s;
+  }
+
+  /* FOOTER */
+  footer {
+    position: relative; z-index: 1;
+    text-align: center; padding: 40px;
+    border-top: 1px solid var(--card-border);
+    color: var(--dim); font-size: 0.8rem; line-height: 2;
+  }
+  footer .footer-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    color: var(--accent-gold); margin-bottom: 12px;
+  }
+  .disclaimer {
+    max-width: 600px; margin: 0 auto;
+    font-size: 0.72rem; color: rgba(106,122,154,0.6);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* PLANET DECORATION */
+  .planet {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="starfield"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">BUNZY<span>BETS</span></a>
+  <div class="nav-balance">
+    <span class="label">CREDITS</span>
+    <span class="balance-amount" id="nav-balance">$10,000.00</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">⚡ Free Play · No Real Money · Infinite Fun</div>
+  <h1 class="hero-title">
+    Bet Across<br>
+    <span class="gold">The Galaxy</span>
+  </h1>
+  <p class="hero-sub">Six cosmic games. Ten thousand credits. The house always loses out here — you're playing among the stars.</p>
+  <div class="hero-cta">
+    <a href="#games" class="btn-primary">Launch Games</a>
+    <a href="#games" class="btn-secondary">View All Games</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-value">6</div>
+    <div class="stat-label">Games</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="stat-balance">$10,000</div>
+    <div class="stat-label">Your Credits</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">∞</div>
+    <div class="stat-label">Fun Guaranteed</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">0</div>
+    <div class="stat-label">Real Money</div>
+  </div>
+</div>
+
+<!-- GAMES -->
+<section class="games-section" id="games">
+  <div class="section-header">
+    <div class="section-eyebrow">— Choose Your Game —</div>
+    <h2 class="section-title">Select Your Mission</h2>
+  </div>
+  <div class="games-grid">
+
+    <a href="slots.html" class="game-card" style="--card-accent: rgba(245,200,66,0.5); --card-vis-bg: rgba(245,200,66,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg"></div>
+        <div class="card-emoji">🎰</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">SLOTS</div>
+        <div class="card-desc">Spin the reels and match symbols across 5 paylines to win big.</div>
+        <div class="card-meta">
+          <span class="card-tag">Slots</span>
+          <span class="card-tag">Min $1</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: var(--accent-gold);">PLAY →</div>
+    </a>
+
+    <a href="blackjack.html" class="game-card" style="--card-accent: rgba(0,229,255,0.5); --card-vis-bg: rgba(0,229,255,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg"></div>
+        <div class="card-emoji">🃏</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">BLACKJACK</div>
+        <div class="card-desc">Beat the dealer to 21. Hit, stand, or double down.</div>
+        <div class="card-meta">
+          <span class="card-tag">Cards</span>
+          <span class="card-tag">Min $5</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: var(--accent-cyan);">PLAY →</div>
+    </a>
+
+    <a href="roulette.html" class="game-card" style="--card-accent: rgba(224,64,251,0.5); --card-vis-bg: rgba(224,64,251,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg"></div>
+        <div class="card-emoji">🌀</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">ROULETTE</div>
+        <div class="card-desc">Place your bets on numbers, colors, or groups and watch the wheel spin.</div>
+        <div class="card-meta">
+          <span class="card-tag">Roulette</span>
+          <span class="card-tag">Min $1</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: var(--accent-magenta);">PLAY →</div>
+    </a>
+
+    <a href="poker.html" class="game-card" style="--card-accent: rgba(0,255,136,0.5); --card-vis-bg: rgba(0,255,136,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg" style="background: radial-gradient(circle at 50% 100%, rgba(0,255,136,0.2), transparent 70%);"></div>
+        <div class="card-emoji">♠️</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">POKER</div>
+        <div class="card-desc">Five-card draw against the dealer. Hold your best hand and go all in.</div>
+        <div class="card-meta">
+          <span class="card-tag">Poker</span>
+          <span class="card-tag">Min $10</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: #00ff88;">PLAY →</div>
+    </a>
+
+    <a href="crash.html" class="game-card" style="--card-accent: rgba(255,80,80,0.5); --card-vis-bg: rgba(255,80,80,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg" style="background: radial-gradient(circle at 50% 100%, rgba(255,80,80,0.2), transparent 70%);"></div>
+        <div class="card-emoji">🚀</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">CRASH</div>
+        <div class="card-desc">Watch the multiplier climb. Cash out before it crashes — wait too long and you lose it all.</div>
+        <div class="card-meta">
+          <span class="card-tag">Crash</span>
+          <span class="card-tag">Min $1</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: #ff5050;">PLAY →</div>
+    </a>
+
+    <a href="dice.html" class="game-card" style="--card-accent: rgba(255,160,40,0.5); --card-vis-bg: rgba(255,160,40,0.05);">
+      <div class="card-glow"></div>
+      <div class="card-visual">
+        <div class="card-visual-bg" style="background: radial-gradient(circle at 50% 100%, rgba(255,160,40,0.2), transparent 70%);"></div>
+        <div class="card-emoji">🎲</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">DICE</div>
+        <div class="card-desc">Set your target number, bet over or under, and roll.</div>
+        <div class="card-meta">
+          <span class="card-tag">Dice</span>
+          <span class="card-tag">Min $1</span>
+        </div>
+      </div>
+      <div class="play-btn" style="background: #ffa028;">PLAY →</div>
+    </a>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">BUNZYBETS GAMING</div>
+  <p class="disclaimer">BunzyBets Gaming is a free-to-play entertainment platform. No real money is used or won. All credits are virtual and have no monetary value. For entertainment purposes only. 18+</p>
+</footer>
+
+<script>
+  // Star field
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 200; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    const min = Math.random() * 0.3 + 0.1;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --d:${Math.random()*4+2}s; --min:${min};
+      animation-delay:${Math.random()*4}s;
+    `;
+    sf.appendChild(s);
+  }
+
+  // Nebulas
+  const nebulas = [
+    { x: '10%', y: '20%', w: '400px', h: '300px', color: 'rgba(100,0,200,0.12)' },
+    { x: '70%', y: '50%', w: '500px', h: '400px', color: 'rgba(0,60,200,0.1)' },
+    { x: '40%', y: '70%', w: '350px', h: '250px', color: 'rgba(200,0,100,0.08)' },
+  ];
+  nebulas.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'nebula';
+    el.style.cssText = `left:${n.x}; top:${n.y}; width:${n.w}; height:${n.h}; background:${n.color}; animation-duration:${15+Math.random()*10}s;`;
+    sf.appendChild(el);
+  });
+
+  // Balance
+  const STARTING = 10000;
+  if (!localStorage.getItem('bunzy_balance')) localStorage.setItem('bunzy_balance', STARTING);
+  const bal = parseFloat(localStorage.getItem('bunzy_balance'));
+  document.getElementById('nav-balance').textContent = '$' + bal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('stat-balance').textContent = '$' + bal.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+
+  // Smooth scroll
+  document.querySelectorAll('a[href="#games"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('games').scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
