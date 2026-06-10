@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store — BunzyBets Gaming</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void:#03020a; --accent-gold:#f5c842; --accent-cyan:#00e5ff;
+    --accent-magenta:#e040fb; --star-white:#e8f0ff; --dim:#6a7a9a;
+    --card-bg:rgba(255,255,255,0.04); --card-border:rgba(255,255,255,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--void);color:var(--star-white);font-family:'Exo 2',sans-serif;min-height:100vh;}
+  #starfield{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse at 30% 50%,#1a0030 0%,transparent 60%),
+    radial-gradient(ellipse at 70% 20%,#00101a 0%,transparent 50%),var(--void);}
+  .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d) ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:var(--min)}50%{opacity:1}}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(3,2,10,0.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(224,64,251,0.15);}
+  .nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.2rem;color:var(--accent-gold);text-decoration:none;letter-spacing:2px;}
+  .nav-logo span{color:var(--accent-cyan);}
+  .nav-balance{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:0.9rem;color:var(--accent-gold);background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);padding:8px 16px;border-radius:8px;}
+  .nav-balance .label{color:var(--dim);font-size:0.75rem;}
+  .back-btn{font-family:'Orbitron',sans-serif;font-size:0.75rem;letter-spacing:2px;padding:8px 16px;border-radius:6px;background:transparent;color:var(--dim);border:1px solid var(--card-border);text-decoration:none;transition:all 0.2s;}
+  .back-btn:hover{color:var(--star-white);border-color:rgba(255,255,255,0.3);}
+
+  .page-wrap{position:relative;z-index:1;padding:100px 40px 60px;max-width:1100px;margin:0 auto;}
+
+  .page-header{text-align:center;margin-bottom:60px;}
+  .page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.7rem;letter-spacing:4px;color:var(--accent-magenta);text-transform:uppercase;margin-bottom:12px;}
+  .page-title{font-family:'Orbitron',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:900;margin-bottom:12px;}
+  .page-title span{color:var(--accent-magenta);text-shadow:0 0 20px rgba(224,64,251,0.4);}
+  .page-sub{color:var(--dim);font-size:0.95rem;line-height:1.7;}
+
+  /* Active perk banner */
+  .active-perk-banner{display:none;background:rgba(224,64,251,0.1);border:1px solid rgba(224,64,251,0.3);border-radius:12px;padding:16px 24px;margin-bottom:40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .active-perk-banner.hidden{display:none;}
+  .active-perk-info{display:flex;align-items:center;gap:12px;}
+  .active-perk-icon{font-size:1.8rem;}
+  .active-perk-text{font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent-magenta);}
+  .active-perk-rounds{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--dim);margin-top:4px;}
+  .clear-perk-btn{font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:1px;padding:8px 16px;border-radius:6px;border:1px solid rgba(224,64,251,0.4);background:transparent;color:var(--accent-magenta);cursor:pointer;transition:all 0.2s;}
+  .clear-perk-btn:hover{background:rgba(224,64,251,0.1);}
+
+  /* Grid */
+  .store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+
+  .item-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;overflow:hidden;transition:all 0.3s;position:relative;}
+  .item-card:hover{transform:translateY(-4px);border-color:var(--item-color,var(--accent-magenta));}
+  .item-card.owned{border-color:rgba(0,255,136,0.4);}
+  .item-card.active-item{border-color:var(--accent-magenta);box-shadow:0 0 30px rgba(224,64,251,0.2);}
+
+  .item-header{padding:24px 24px 16px;display:flex;align-items:center;gap:16px;}
+  .item-emoji{font-size:2.8rem;filter:drop-shadow(0 0 10px var(--item-color,rgba(224,64,251,0.5)));}
+  .item-title-wrap{}
+  .item-name{font-family:'Orbitron',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+  .item-rounds{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:1px;}
+
+  .item-desc{padding:0 24px 16px;font-size:0.82rem;color:var(--dim);line-height:1.6;}
+
+  .item-effect{margin:0 24px 16px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.03);border-left:3px solid var(--item-color,var(--accent-magenta));font-size:0.78rem;color:var(--star-white);}
+  .item-effect-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;color:var(--dim);margin-bottom:4px;text-transform:uppercase;}
+
+  .item-footer{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--card-border);}
+  .item-price{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent-gold);}
+  .item-price span{font-size:0.7rem;color:var(--dim);font-family:'JetBrains Mono',monospace;}
+
+  .buy-btn{font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s;background:var(--item-color,var(--accent-magenta));color:#000;}
+  .buy-btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.2);}
+  .buy-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .buy-btn.active-btn{background:rgba(0,255,136,0.2);color:#00ff88;border:1px solid rgba(0,255,136,0.4);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a0a3a;border:1px solid rgba(224,64,251,0.4);color:var(--star-white);padding:14px 28px;border-radius:10px;font-family:'Exo 2',sans-serif;font-size:0.9rem;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">BUNZY<span>BETS</span></a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" class="back-btn">← LOBBY</a>
+    <div class="nav-balance"><span class="label">CREDITS</span><span id="nav-balance">$10,000</span></div>
+  </div>
+</nav>
+<script src="space-bg.js"></script>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="page-eyebrow">⚗️ Enhance Your Game</div>
+    <h1 class="page-title">The <span>Substance</span> Store</h1>
+    <p class="page-sub">Spend your credits on temporary perks. Each dose lasts 5 rounds.<br>Effects apply across all games until the dose wears off.</p>
+  </div>
+
+  <div class="active-perk-banner hidden" id="active-banner">
+    <div class="active-perk-info">
+      <div class="active-perk-icon" id="banner-icon"></div>
+      <div>
+        <div class="active-perk-text" id="banner-name"></div>
+        <div class="active-perk-rounds" id="banner-rounds"></div>
+      </div>
+    </div>
+    <button class="clear-perk-btn" onclick="clearPerk()">CANCEL PERK</button>
+  </div>
+
+  <div class="store-grid" id="store-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ITEMS = [
+    {
+      id: 'beer',
+      emoji: '🍺',
+      name: 'BEER',
+      price: 4000,
+      rounds: 5,
+      desc: 'A couple cold ones. Slightly wobbly hands.',
+      effect: '+10% to all winnings. Bet amount drifts ±$5 randomly like your hands aren\'t steady.',
+      color: 'rgba(255,180,50,0.8)',
+    },
+    {
+      id: 'mushrooms',
+      emoji: '🍄',
+      name: 'MUSHROOMS',
+      price: 4000,
+      rounds: 5,
+      desc: 'Reality bends. Numbers lie. The crash rocket does things it shouldn\'t.',
+      effect: 'Crash multiplier randomly spikes to a fake high value for 0.2s. Slot symbols flash wrong before landing. Colors pulse.',
+      color: 'rgba(180,80,255,0.8)',
+    },
+    {
+      id: 'coffee',
+      emoji: '☕',
+      name: 'COFFEE',
+      price: 500,
+      rounds: 5,
+      desc: 'Triple espresso. You\'re wired.',
+      effect: 'All spin/roll animations are 3x faster. No waiting.',
+      color: 'rgba(160,100,40,0.8)',
+    },
+    {
+      id: 'wine',
+      emoji: '🍷',
+      name: 'WINE',
+      price: 1500,
+      rounds: 5,
+      desc: 'Sophisticated and dangerous.',
+      effect: 'Every win flips a coin — heads pays 2x, tails pays nothing extra.',
+      color: 'rgba(180,20,60,0.8)',
+    },
+    {
+      id: 'adderall',
+      emoji: '💊',
+      name: 'ADDERALL',
+      price: 2000,
+      rounds: 5,
+      desc: 'Laser focus. You see the angles.',
+      effect: 'Blackjack shows a hint suggesting Hit or Stand based on basic strategy.',
+      color: 'rgba(0,180,255,0.8)',
+    },
+    {
+      id: 'whiskey',
+      emoji: '🥃',
+      name: 'WHISKEY',
+      price: 2500,
+      rounds: 5,
+      desc: 'Drunk confidence. Go big or go home.',
+      effect: 'Bet automatically increases by 50%, but payouts also increase by 50%.',
+      color: 'rgba(200,100,20,0.8)',
+    },
+    {
+      id: 'weed',
+      emoji: '🌿',
+      name: 'WEED',
+      price: 1000,
+      rounds: 5,
+      desc: 'Chill out. The universe provides.',
+      effect: 'Everything slows down. Every 5th round is guaranteed not to be a total loss — minimum return of your bet.',
+      color: 'rgba(40,180,80,0.8)',
+    },
+    {
+      id: 'cocaine',
+      emoji: '❄️',
+      name: 'COCAINE',
+      price: 7500,
+      rounds: 5,
+      desc: 'High risk. Astronomical reward.',
+      effect: 'Bet minimums double, but all payouts triple. Not for the faint-hearted.',
+      color: 'rgba(200,230,255,0.9)',
+    },
+  ];
+
+  // Stars
+  const sf=document.getElementById('starfield');
+  for(let i=0;i<180;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+0.5,mn=Math.random()*0.3+0.1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${Math.random()*4+2}s;--min:${mn};animation-delay:${Math.random()*4}s;`;sf.appendChild(s);}
+
+  function getBalance(){return parseFloat(localStorage.getItem('bunzy_balance')||10000);}
+  function setBalance(v){localStorage.setItem('bunzy_balance',v);document.getElementById('nav-balance').textContent='$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+  function getActivePerk(){try{return JSON.parse(localStorage.getItem('bunzy_perk'))||null;}catch{return null;}}
+  function setActivePerk(p){localStorage.setItem('bunzy_perk',JSON.stringify(p));}
+  function clearPerk(){localStorage.removeItem('bunzy_perk');renderStore();updateBanner();showToast('Perk cancelled.');}
+
+  function buyItem(id){
+    const item=ITEMS.find(i=>i.id===id);
+    const bal=getBalance();
+    if(bal<item.price){showToast('Not enough credits!');return;}
+    const current=getActivePerk();
+    if(current){showToast('You already have an active perk! Wait for it to wear off or cancel it.');return;}
+    setBalance(bal-item.price);
+    setActivePerk({id:item.id,emoji:item.emoji,name:item.name,roundsLeft:item.rounds});
+    renderStore();
+    updateBanner();
+    showToast(`${item.emoji} ${item.name} active! ${item.rounds} rounds remaining.`);
+  }
+
+  function updateBanner(){
+    const p=getActivePerk();
+    const banner=document.getElementById('active-banner');
+    if(p){
+      banner.classList.remove('hidden');
+      document.getElementById('banner-icon').textContent=p.emoji;
+      document.getElementById('banner-name').textContent=p.name+' IS ACTIVE';
+      document.getElementById('banner-rounds').textContent=p.roundsLeft+' rounds remaining';
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+
+  function renderStore(){
+    const grid=document.getElementById('store-grid');
+    const active=getActivePerk();
+    const bal=getBalance();
+    grid.innerHTML='';
+    ITEMS.forEach(item=>{
+      const isActive=active&&active.id===item.id;
+      const cantAfford=bal<item.price;
+      const otherActive=active&&active.id!==item.id;
+      const card=document.createElement('div');
+      card.className='item-card'+(isActive?' active-item':'');
+      card.style.setProperty('--item-color',item.color);
+      card.innerHTML=`
+        <div class="item-header">
+          <div class="item-emoji">${item.emoji}</div>
+          <div class="item-title-wrap">
+            <div class="item-name" style="color:${item.color}">${item.name}</div>
+            <div class="item-rounds">⏱ ${item.rounds} ROUNDS</div>
+          </div>
+        </div>
+        <div class="item-desc">${item.desc}</div>
+        <div class="item-effect">
+          <div class="item-effect-label">Effect</div>
+          ${item.effect}
+        </div>
+        <div class="item-footer">
+          <div class="item-price">$${item.price.toLocaleString()} <span>CREDITS</span></div>
+          <button class="buy-btn ${isActive?'active-btn':''}"
+            style="${isActive?'':'background:'+item.color}"
+            onclick="buyItem('${item.id}')"
+            ${isActive||otherActive||cantAfford?'disabled':''}>
+            ${isActive?'✓ ACTIVE':otherActive?'PERK ACTIVE':cantAfford?'TOO POOR':'BUY'}
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  setBalance(getBalance());
+  updateBanner();
+  renderStore();
+</script>
+</body>
+</html>

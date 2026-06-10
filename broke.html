@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BunzyBets — Transmission Incoming</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void:#03020a; --accent-gold:#f5c842; --accent-cyan:#00e5ff;
+    --alien:#39ff14; --alien-dim:rgba(57,255,20,0.15); --alien-border:rgba(57,255,20,0.3);
+    --star-white:#e8f0ff; --dim:#6a7a9a; --red:#ff3333;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;}
+  body{background:#000;color:var(--star-white);font-family:'Exo 2',sans-serif;display:flex;align-items:center;justify-content:center;}
+
+  /* Scanline overlay */
+  body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:999;}
+
+  #starfield{position:fixed;inset:0;z-index:0;pointer-events:none;}
+  .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d) ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:var(--min)}50%{opacity:1}}
+
+  /* Glitch animation on body bg */
+  @keyframes bgGlitch {
+    0%,95%{background:#000;}
+    96%{background:#0a0a00;}
+    97%{background:#00000a;}
+    98%{background:#050005;}
+    100%{background:#000;}
+  }
+  body{animation:bgGlitch 4s infinite;}
+
+  .scene{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px;max-width:700px;width:100%;}
+
+  /* Alien figure */
+  .alien-wrap{position:relative;margin-bottom:30px;}
+  .alien-glow{position:absolute;inset:-40px;border-radius:50%;background:radial-gradient(circle,rgba(57,255,20,0.15) 0%,transparent 70%);animation:pulse-glow 2s ease-in-out infinite;}
+  @keyframes pulse-glow{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.1);opacity:1}}
+  .alien-figure{font-size:8rem;line-height:1;filter:drop-shadow(0 0 30px var(--alien));animation:float 3s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  /* Transmission header */
+  .transmission{font-family:'JetBrains Mono',monospace;font-size:0.7rem;letter-spacing:4px;color:var(--alien);text-transform:uppercase;margin-bottom:12px;animation:blink 1s step-end infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  .alien-name{font-family:'Orbitron',sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:3px;color:var(--alien);margin-bottom:20px;text-shadow:0 0 20px var(--alien);}
+
+  /* Speech bubble */
+  .speech{background:rgba(0,0,0,0.8);border:1px solid var(--alien-border);border-radius:16px;padding:24px 32px;margin-bottom:30px;position:relative;}
+  .speech::before{content:'▲';position:absolute;top:-14px;left:50%;transform:translateX(-50%);color:var(--alien-border);font-size:1rem;}
+  .speech-text{font-size:1rem;line-height:1.8;color:var(--star-white);}
+  .speech-text .highlight{color:var(--alien);font-weight:600;}
+  .speech-text .bad{color:var(--red);}
+  .typing-cursor{display:inline-block;width:2px;height:1em;background:var(--alien);animation:blink 0.7s step-end infinite;vertical-align:middle;margin-left:2px;}
+
+  /* Loan amount */
+  .loan-display{font-family:'Orbitron',sans-serif;font-size:2.5rem;font-weight:900;color:var(--accent-gold);text-shadow:0 0 20px rgba(245,200,66,0.4);margin-bottom:8px;}
+  .loan-sub{font-family:'JetBrains Mono',monospace;font-size:0.7rem;letter-spacing:2px;color:var(--dim);margin-bottom:30px;}
+
+  /* Substance reveal */
+  .substance-reveal{display:none;margin-bottom:30px;}
+  .substance-reveal.visible{display:block;}
+  .substance-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:3px;color:var(--dim);margin-bottom:10px;}
+  .substance-item{display:inline-flex;align-items:center;gap:10px;background:rgba(57,255,20,0.08);border:1px solid var(--alien-border);border-radius:10px;padding:12px 24px;}
+  .substance-emoji{font-size:2rem;}
+  .substance-name{font-family:'Orbitron',sans-serif;font-size:0.9rem;font-weight:700;color:var(--alien);}
+  .substance-effect{font-size:0.75rem;color:var(--dim);margin-top:2px;}
+
+  /* Choices */
+  .choices{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;}
+  .choice-btn{font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;padding:16px 28px;border-radius:10px;cursor:pointer;transition:all 0.2s;border:none;}
+  .choice-accept{background:linear-gradient(135deg,var(--alien),#20cc00);color:#000;box-shadow:0 0 20px rgba(57,255,20,0.3);}
+  .choice-accept:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(57,255,20,0.6);}
+  .choice-refuse{background:transparent;color:var(--red);border:1px solid rgba(255,51,51,0.4);}
+  .choice-refuse:hover{background:rgba(255,51,51,0.08);}
+  .choice-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+
+  /* Countdown */
+  .lockout-screen{display:none;flex-direction:column;align-items:center;gap:20px;}
+  .lockout-screen.visible{display:flex;}
+  .lockout-title{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;color:var(--red);}
+  .lockout-timer{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:var(--red);text-shadow:0 0 20px rgba(255,51,51,0.5);}
+  .lockout-msg{color:var(--dim);font-size:0.85rem;line-height:1.7;max-width:400px;}
+
+  /* Double or nothing game */
+  .don-game{display:none;flex-direction:column;align-items:center;gap:16px;}
+  .don-game.visible{display:flex;}
+  .don-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent-gold);letter-spacing:2px;}
+  .don-sub{font-size:0.82rem;color:var(--dim);}
+  .coin{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent-gold),#e6a800);display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;box-shadow:0 0 30px rgba(245,200,66,0.4);transition:all 0.2s;border:none;}
+  .coin:hover:not(:disabled){transform:scale(1.05);}
+  .coin:disabled{cursor:not-allowed;opacity:0.6;}
+  .coin.flipping{animation:coinflip 0.6s ease-in-out;}
+  @keyframes coinflip{0%{transform:rotateY(0) scale(1)}50%{transform:rotateY(90deg) scale(0.8)}100%{transform:rotateY(0) scale(1)}}
+  .don-result{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;min-height:32px;}
+  .don-result.win{color:var(--alien);}
+  .don-result.lose{color:var(--red);}
+
+  /* Glitch text effect */
+  @keyframes glitch{
+    0%,100%{text-shadow:0 0 10px var(--alien);}
+    20%{text-shadow:-2px 0 var(--red),2px 0 var(--accent-cyan);}
+    40%{text-shadow:2px 0 var(--red),-2px 0 var(--accent-cyan);}
+    60%{text-shadow:0 0 10px var(--alien);}
+  }
+  .glitch-text{animation:glitch 3s infinite;}
+</style>
+</head>
+<body>
+
+<!-- MAIN SCENE -->
+<div class="scene" id="main-scene">
+  <div class="transmission" id="transmission-label">⬡ INCOMING TRANSMISSION ⬡</div>
+
+  <div class="alien-wrap">
+    <div class="alien-glow"></div>
+    <div class="alien-figure">👽</div>
+  </div>
+
+  <div class="alien-name glitch-text" id="alien-name">ZYLOTH-9 · INTERGALACTIC CREDIT BUREAU</div>
+
+  <div class="speech">
+    <div class="speech-text" id="speech-text"></div>
+  </div>
+
+  <div class="loan-display" id="loan-display" style="display:none;">$100</div>
+  <div class="loan-sub" id="loan-sub" style="display:none;">ZYLOTHIAN CREDIT LOAN · INTEREST: YOUR SOUL</div>
+
+  <div class="substance-reveal" id="substance-reveal">
+    <div class="substance-label">COMPLIMENTARY SUBSTANCE</div>
+    <div class="substance-item">
+      <div class="substance-emoji" id="sub-emoji"></div>
+      <div>
+        <div class="substance-name" id="sub-name"></div>
+        <div class="substance-effect" id="sub-effect"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="choices" id="choices" style="display:none;">
+    <button class="choice-btn choice-accept" id="btn-accept" onclick="acceptDeal()">ACCEPT THE DEAL</button>
+    <button class="choice-btn choice-refuse" id="btn-refuse" onclick="refuseDeal()">TAKE THE LOCKOUT</button>
+  </div>
+
+  <!-- Double or nothing -->
+  <div class="don-game" id="don-game">
+    <div class="don-title">DOUBLE OR NOTHING</div>
+    <div class="don-sub">Flip the coin. Heads you keep $200. Tails you lose everything and wait 2 hours.</div>
+    <button class="coin" id="coin-btn" onclick="flipCoin()">🪙</button>
+    <div class="don-result" id="don-result"></div>
+  </div>
+</div>
+
+<!-- LOCKOUT SCREEN -->
+<div class="scene lockout-screen" id="lockout-screen">
+  <div class="alien-figure" style="font-size:5rem;">👽</div>
+  <div class="lockout-title">ACCESS DENIED</div>
+  <div class="lockout-timer" id="lockout-timer">00:00:00</div>
+  <div class="lockout-msg" id="lockout-msg">Zyloth-9 has frozen your account. Return when the timer expires — or next time, don't blow the double-or-nothing.</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--dim);letter-spacing:2px;">ZYLOTHIAN CREDIT BUREAU · CASE #<span id="case-num"></span></div>
+</div>
+
+<script>
+  // Stars
+  const sf=document.getElementById('starfield');
+  for(let i=0;i<200;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+0.5,mn=Math.random()*0.3+0.1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${Math.random()*4+2}s;--min:${mn};animation-delay:${Math.random()*4}s;`;sf.appendChild(s);}
+
+  const SUBSTANCES = [
+    {id:'beer',     emoji:'🍺', name:'BEER',     effect:'+10% winnings, unsteady hands'},
+    {id:'mushrooms',emoji:'🍄', name:'MUSHROOMS',effect:'Reality glitches. Numbers lie.'},
+    {id:'coffee',   emoji:'☕', name:'COFFEE',   effect:'3x faster animations'},
+    {id:'wine',     emoji:'🍷', name:'WINE',     effect:'Double or nothing on every win'},
+    {id:'adderall', emoji:'💊', name:'ADDERALL', effect:'Blackjack hints enabled'},
+    {id:'whiskey',  emoji:'🥃', name:'WHISKEY',  effect:'+50% bet & payout'},
+    {id:'weed',     emoji:'🌿', name:'WEED',     effect:'5th round guaranteed no total loss'},
+    {id:'cocaine',  emoji:'❄️', name:'COCAINE',  effect:'2x bet, 3x payout'},
+  ];
+
+  const SPEECHES = [
+    `Greetings, <span class="highlight">carbon-based organism</span>.<br><br>Your credit account has reached <span class="bad">absolute zero</span>. This is... unfortunate.<br><br>I am <span class="highlight">Zyloth-9</span>, representative of the Intergalactic Credit Bureau. I have been observing your... <span class="highlight">unique</span> gambling strategies.<br><br>I am prepared to offer you a <span class="highlight">$100 loan</span>. You will play double-or-nothing. Win, and you keep <span class="highlight">$200</span>. Lose, and your account is <span class="bad">frozen for 2 hours</span>.<br><br>I am also providing a complimentary substance from our collection. Consider it a gesture of <span class="highlight">goodwill</span>.<br><br>Alternatively, you may choose a voluntary lockout of <span class="highlight">1 hour</span>. The choice is yours.`,
+    `<span class="highlight">Fascinating.</span> Another human reaches the void.<br><br>I have watched <span class="highlight">10,847 species</span> gamble across this galaxy. Humans are my favorite. So... <span class="bad">predictably reckless</span>.<br><br>I am Zyloth-9. Your balance is <span class="bad">$0.00</span>. I have a proposition.<br><br>Accept my <span class="highlight">$100 loan</span> and flip the coin. Double it to <span class="highlight">$200</span> or face a <span class="bad">2-hour freeze</span>. I will include one of our finest substances to assist you.<br><br>Or take the <span class="highlight">1-hour voluntary lockout</span> and return refreshed. Your call, organism.`,
+    `<span class="bad">Zero.</span> You have reached zero.<br><br>Do you know how rare that is? Most organisms quit before zero. Not you. You committed.<br><br>I respect that. I am <span class="highlight">Zyloth-9</span>, and I have a deal for you.<br><br>A <span class="highlight">$100 loan</span>. One coin flip. <span class="highlight">Win: $200</span>. <span class="bad">Lose: 2-hour lockout</span>. I'll even throw in a substance — consider it hazard pay for your courage.<br><br>Or simply take the <span class="highlight">1-hour break</span>. Go touch some grass. We'll be here.`,
+  ];
+
+  let assignedSubstance = null;
+
+  function checkLockout() {
+    const lockUntil = localStorage.getItem('bunzy_lockout');
+    if (lockUntil) {
+      const remaining = parseInt(lockUntil) - Date.now();
+      if (remaining > 0) {
+        showLockout(remaining);
+        return true;
+      } else {
+        localStorage.removeItem('bunzy_lockout');
+      }
+    }
+    return false;
+  }
+
+  function showLockout(remainingMs) {
+    document.getElementById('main-scene').style.display = 'none';
+    document.getElementById('lockout-screen').classList.add('visible');
+    document.getElementById('case-num').textContent = Math.floor(Math.random()*900000+100000);
+    updateLockoutTimer(remainingMs);
+    const interval = setInterval(() => {
+      const lockUntil = parseInt(localStorage.getItem('bunzy_lockout'));
+      const rem = lockUntil - Date.now();
+      if (rem <= 0) {
+        clearInterval(interval);
+        localStorage.removeItem('bunzy_lockout');
+        window.location.href = 'index.html';
+      } else {
+        updateLockoutTimer(rem);
+      }
+    }, 1000);
+  }
+
+  function updateLockoutTimer(ms) {
+    const h = Math.floor(ms/3600000);
+    const m = Math.floor((ms%3600000)/60000);
+    const s = Math.floor((ms%60000)/1000);
+    document.getElementById('lockout-timer').textContent =
+      String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  function pickSubstance() {
+    const pick = SUBSTANCES[Math.floor(Math.random()*SUBSTANCES.length)];
+    assignedSubstance = pick;
+    document.getElementById('sub-emoji').textContent = pick.emoji;
+    document.getElementById('sub-name').textContent = pick.name;
+    document.getElementById('sub-effect').textContent = pick.effect;
+    document.getElementById('substance-reveal').classList.add('visible');
+  }
+
+  function typeText(el, html, speed=18) {
+    return new Promise(resolve => {
+      // Strip tags for typing effect, then reveal full HTML
+      const stripped = html.replace(/<[^>]+>/g, '');
+      let i = 0;
+      el.innerHTML = '';
+      const cursor = document.createElement('span');
+      cursor.className = 'typing-cursor';
+      el.appendChild(cursor);
+      const interval = setInterval(() => {
+        if (i >= stripped.length) {
+          clearInterval(interval);
+          el.innerHTML = html + '<span class="typing-cursor"></span>';
+          setTimeout(() => {
+            el.innerHTML = html;
+            resolve();
+          }, 400);
+          return;
+        }
+        // Show plain text while typing
+        el.innerHTML = stripped.substring(0, i+1) + '<span class="typing-cursor"></span>';
+        i++;
+      }, speed);
+    });
+  }
+
+  async function startScene() {
+    if (checkLockout()) return;
+
+    // Pick random speech
+    const speech = SPEECHES[Math.floor(Math.random()*SPEECHES.length)];
+    pickSubstance();
+
+    await new Promise(r => setTimeout(r, 800));
+    await typeText(document.getElementById('speech-text'), speech, 12);
+
+    // Show loan amount
+    document.getElementById('loan-display').style.display = 'block';
+    document.getElementById('loan-sub').style.display = 'block';
+
+    // Show choices
+    await new Promise(r => setTimeout(r, 600));
+    document.getElementById('choices').style.display = 'flex';
+  }
+
+  function acceptDeal() {
+    document.getElementById('choices').style.display = 'none';
+    document.getElementById('don-game').classList.add('visible');
+  }
+
+  function refuseDeal() {
+    // 1 hour lockout
+    localStorage.setItem('bunzy_lockout', Date.now() + 60*60*1000);
+    localStorage.setItem('bunzy_balance', '0');
+    showLockout(60*60*1000);
+  }
+
+  function flipCoin() {
+    const btn = document.getElementById('coin-btn');
+    btn.disabled = true;
+    btn.classList.add('flipping');
+    setTimeout(() => {
+      btn.classList.remove('flipping');
+      const win = Math.random() < 0.5;
+      const result = document.getElementById('don-result');
+      if (win) {
+        btn.textContent = '😎';
+        result.textContent = 'HEADS! +$200 — Welcome back, organism.';
+        result.className = 'don-result win';
+        // Give $200, apply substance perk, go to lobby
+        localStorage.setItem('bunzy_balance', '200');
+        if (assignedSubstance) {
+          localStorage.setItem('bunzy_perk', JSON.stringify({
+            id: assignedSubstance.id,
+            emoji: assignedSubstance.emoji,
+            name: assignedSubstance.name,
+            roundsLeft: 5
+          }));
+        }
+        setTimeout(() => window.location.href = 'index.html', 2500);
+      } else {
+        btn.textContent = '💀';
+        result.textContent = 'TAILS. Zyloth-9 is disappointed.';
+        result.className = 'don-result lose';
+        // 2 hour lockout
+        localStorage.setItem('bunzy_lockout', Date.now() + 2*60*60*1000);
+        localStorage.setItem('bunzy_balance', '0');
+        setTimeout(() => showLockout(2*60*60*1000), 1800);
+      }
+    }, 700);
+  }
+
+  startScene();
+</script>
+</body>
+</html>
