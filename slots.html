@@ -164,7 +164,7 @@
 
   function getBalance() { return parseFloat(localStorage.getItem('bunzy_balance') || 10000); }
   function setBalance(v) {
-    localStorage.setItem('bunzy_balance', Math.floor(v));
+    localStorage.setItem('bunzy_balance', String(Math.floor(v)));
     document.getElementById('nav-balance').textContent = '$' + v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
     document.getElementById('topup-btn').style.display = v < 10 ? 'block' : 'none';
   }
